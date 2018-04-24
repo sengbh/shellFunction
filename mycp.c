@@ -96,7 +96,7 @@ void cpdir(char *from, char *to) {
 
 void cpfiledir(char* from, char*to){
  
-  struct stat mode;
+  /*struct stat mode;
   //open source directory
   DIR *d = opendir(from);
   struct dirent *de = readdir(d);
@@ -123,7 +123,25 @@ void cpfiledir(char* from, char*to){
     free(newSource);
     free(newTarget);
   }
-  closedir(d);
+  closedir(d);*/
+  DIR *dir = opendir(from);
+  if(dir){
+	struct dirent *e;
+	while(e = readdir(dir) != NULL){
+		struct stat info;
+		char* newS = ispath(from, dir->name);
+		char* newT = ispath(to, dir->name);
+		if(!stat(from, $info)){
+			if(S_ISDIR(info.st_mode) && strcmp(dir->name, ".") != 0 
+         		&& strcmp(de->name, "..") != 0)
+      			cpdir(newS, newT);	
+		}
+		else if(S_ISREG(info.st_mode))
+      		mycp(newS, newT);
+	}
+	  free(newS);
+	  free(newT);
+  }
 }
 
 int main(int argc, char **argv) {
