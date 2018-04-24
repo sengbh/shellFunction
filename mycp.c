@@ -7,6 +7,7 @@
 #include <string.h>
 
 #define SIZE 4096
+
 //copy text file to text file function
 void mycp(const char* from, const char* to)
 {
@@ -61,7 +62,7 @@ void cpdir(char *from, char *to) {
   }
   //error
   else {
-    fprintf(stderr, "must be directory or created with -R flag set.\n");
+    fprintf(stderr, "must be directory or created with -R or -r flag set.\n");
     exit(1);
   }
 
@@ -106,16 +107,16 @@ void cpfiledir(char* from, char*to){
     char *newFrom = ispath(from,e->d_name);
     char *newTo = ispath(to, e->d_name);
 
-    //get file characteristics
+    //get file
     if (lstat(newFrom, &mode) < 0)
       perror("mycp cannot open file");
 
-    //if directory, that's not . or .., recurse
+    //if directory, that's not . or ..
     if (S_ISDIR(mode.st_mode) && strcmp(e->d_name, ".") != 0 
          && strcmp(e->d_name, "..") != 0)
       cpdir(newFrom, newTo);
 
-    //if file, copy it
+    //copy fle
     if (S_ISREG(mode.st_mode))
       mycp(newFrom, newTo);
 
@@ -197,8 +198,8 @@ int main(int argc, char **argv) {
   else if (flag == 0 && S_ISREG(buff.st_mode))
     mycp(from, to);
 	
-  //file to dir
-   else if (flag == 1 && S_ISDIR(buff.st_mode))
+  //file to dir without flag -R or -r
+   else if (flag == 0 && S_ISDIR(buff.st_mode))
     cpfiledir(from, to);
 
   //directory && -r
