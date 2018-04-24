@@ -46,25 +46,57 @@ char *ispath(char *file1, char *file2) {
   return getPath;
 }
 
+
 //copy directory to directory
 void cpdir(char *from, char *to) {
   
-  //mkdir to
   struct stat mode;
- /*
+  //mkdir dir when not exist
   if ((lstat(to, &mode)) < 0)
     mkdir(to, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
-  //else if directory duplicate source in target
+  //mkdir dir when duplicate
   else if (S_ISDIR(mode.st_mode)) {
     to = ispath(to, from);
     mkdir(to, S_IRWXU | S_IRWXG | S_IROTH | S_IXOTH);
   }
-  //else something bad happened
+  //error
   else {
     fprintf(stderr, "Destination must be directory or created with -R flag set.\n");
-    exit(EXIT_FAILURE);
-  } */
+    exit(1);
+  }
 
+  //open source directory
+  DIR *d = opendir(from);
+  struct dirent *de = readdir(d);
+
+  while (de) {
+    //set new paths
+    char *newSource = ispath(from,de->d_name);
+    char *newTarget = ispath(to, de->d_name);
+
+    //get file characteristics
+    if (lstat(newSource, &mode) < 0)
+      perror("mycp cannot open file");
+
+    //if directory, that's not . or .., recurse
+    if (S_ISDIR(mode.st_mode) && strcmp(de->d_name, ".") != 0 
+         && strcmp(de->d_name, "..") != 0)
+      cpdir(newSource, newTarget);
+
+    //if file, copy it
+    if (S_ISREG(mode.st_mode))
+      mycp(newSource, newTarget);
+
+    de=readdir(d);
+    free(newSource);
+    free(newTarget);
+  }
+  closedir(d);
+}
+
+void cpfiledir(char* from, char*to){
+ 
+  struct stat mode;
   //open source directory
   DIR *d = opendir(from);
   struct dirent *de = readdir(d);
@@ -143,6 +175,9 @@ int main(int argc, char **argv) {
   //just file
   else if (flag == 0 && S_ISREG(buff.st_mode))
     mycp(from, to);
+  //file to dir
+   else if (flag == 1 && S_ISDIR(buff.st_mode))
+    cpfiledir(from, to);
 
   //directory && -r
   else if (flag == 1 && S_ISDIR(buff.st_mode))
