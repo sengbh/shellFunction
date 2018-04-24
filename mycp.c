@@ -126,22 +126,25 @@ void cpfiledir(char* from, char*to){
   closedir(d);*/
   DIR *dir = opendir(from);
   if(dir){
-	struct dirent *e;
-	while(e = readdir(dir) != NULL){
+	struct dirent *e = readdir(dir);
+	while(e){
 		struct stat info;
-		char* newS = ispath(from, dir->name);
-		char* newT = ispath(to, dir->name);
-		if(!stat(from, $info)){
-			if(S_ISDIR(info.st_mode) && strcmp(dir->name, ".") != 0 
-         		&& strcmp(de->name, "..") != 0)
-      			cpdir(newS, newT);	
+		char* newS = ispath(from, e->d_name);
+		char* newT = ispath(to, e->d_name);
+		if(!stat(from, &info)){
+			if(S_ISDIR(info.st_mode)){
+      				cpdir(newS, newT);
+			}	
+			else if(S_ISREG(info.st_mode)){
+      				mycp(newS, newT);
 		}
-		else if(S_ISREG(info.st_mode))
-      		mycp(newS, newT);
-	}
-	  free(newS);
-	  free(newT);
-  }
+	  
+	   }
+
+  	}
+
+    }
+
 }
 
 int main(int argc, char **argv) {
