@@ -18,7 +18,7 @@ void mycp(char* from, char* to)
 {
   char buffer[SIZE];
   int in, out;
-  ssize_t bytes;
+  int bytes;
   
   in = open(from, O_RDONLY);
   if(!in){
