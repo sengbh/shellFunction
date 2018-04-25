@@ -8,8 +8,13 @@
 
 #define SIZE 4096
 
+void error_msg(char *s){
+  printf("%s\n", s);
+  exit(1);
+}
+
 //copy text file to text file function
-void mycp(const char* from, const char* to)
+void mycp(char* from, char* to)
 {
   char buffer[SIZE];
   int in, out;
@@ -17,22 +22,20 @@ void mycp(const char* from, const char* to)
   
   in = open(from, O_RDONLY);
   if(!in){
-	fprintf(stderr, "cannot open file\n"); 
-	exit(1);
+	error_msg("cannot open file\n"); 
   }
-  out = open(to, O_WRONLY | O_CREAT | O_TRUNC,
-               S_IRUSR | S_IWUSR | S_IRGRP | S_IWGRP | S_IROTH);
+  if((out = open(to, O_WRONLY | O_CREAT, S_IRUSR | S_IWUSR)) == -1){
+	error_msg("error opening the file..\n");
+   }
 
   while((bytes = read(in, buffer, SIZE)) > 0){
 	if(write(out, buffer, SIZE) < bytes){
-		fprintf(stderr, "error writing to a text file..\n");
-		exit(1);
+		error_msg("error writing to a text file..\n");
 	}
   }
 
   if(bytes<0){
-	fprintf(stderr, "error reading text file..\n"); 
-	exit(1);
+	error_msg("error reading text file..\n"); 
   }
 }
 
@@ -62,8 +65,7 @@ void cpdir(char *from, char *to) {
   }
   //error
   else {
-    fprintf(stderr, "must be directory or created with -R or -r flag set.\n");
-    exit(1);
+    error_msg("must be directory or created with -R or -r flag set.\n");
   }
 
   //open source directory
@@ -168,15 +170,13 @@ int main(int argc, char **argv) {
         	flag = 1;
         	break;
       case '?':
-        	fprintf (stderr, "mycp file1 file2 OR mycp -R dir1 dir2..\n");
-        	exit(1);
+        	error_msg("mycp file1 file2 OR mycp -R dir1 dir2..\n");
     }
   }
 
   //check arguments
   if (argc < 3) {
-    fprintf(stderr, "mycp file1 file2 OR mycp -R dir1 dir2..\n");
-    exit(1);
+    error_msg("mycp file1 file2 OR mycp -R dir1 dir2..\n");
   }
 
   //set readable names
@@ -185,13 +185,11 @@ int main(int argc, char **argv) {
 
   //from format
   if ((lstat(from, &buff)) < 0) {
-    fprintf(stderr, "no file or directory..\n");
-    exit(1);
+    error_msg("no file or directory..\n");
   }
-  //file && -r
+  //file && -r or -R
   else if (flag == 1 && !S_ISDIR(buff.st_mode)) {
-    fprintf(stderr, "don't forget flag -R..\n");
-    exit(1);
+    error_msg("./mycp file1 file2 OR -R file1 file2..\n");
   }
 
   //just file
@@ -202,13 +200,12 @@ int main(int argc, char **argv) {
    else if (flag == 0 && S_ISDIR(buff.st_mode))
     cpfiledir(from, to);
 
-  //directory && -r
+  //directory && -r or -R
   else if (flag == 1 && S_ISDIR(buff.st_mode))
     cpdir(from, to);
 
   else {
-    fprintf(stderr, "mycp file1 file2 OR mycp -R dir1 dir2..\n");
-    exit(1);
+    error_msg("mycp file1 file2 OR mycp -R dir1 dir2..\n");
   }
 
   return 0;
