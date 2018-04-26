@@ -13,7 +13,7 @@ void error_msg(char *s){
   exit(1);
 }
 
-//copy text file to text file function
+//copy text file to text file:
 void mycp(char* from, char* to)
 {
   char buffer[SIZE];
